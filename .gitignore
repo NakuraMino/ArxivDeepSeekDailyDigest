@@ -1,0 +1,8 @@
+*credentials.json
+*token.json
+src/daily_digest/models/
+src/daily_digest/configs/my_email.yaml
+src/daily_digest/my_run.sh
+*__pycache__*
+*.egg-info*
+*out.txt*
