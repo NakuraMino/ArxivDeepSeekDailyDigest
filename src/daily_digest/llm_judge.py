@@ -24,17 +24,15 @@ class LLMJudge:
         "**Task**: Determine whether the new paper is interesting based on a given list of relevant papers and keywords.\n\n" + \
         "**Instructions**: {instructions}\n" + \
         "**Keywords**: {keywords}\n\n" + \
-        "**Notable Authors**: {authors}\n\n" + \
         "**Relevant Papers**: {preferences}\n"
 
         instructions = (
             "1. Carefully analyze the provided keywords and the list of relevant papers to understand the core topics of interest.\n"
             "2. Evaluate the new paper against these references, considering relevance to two or more keywords or papers. "
             "It does not need to match all keywords but should have a meaningful connection to the research theme.\n"
-            "3. If the new paper contains any of the notable authors listed, immediately accept the paper regardless of its relevance to other keywords or papers.\n"
-            "4. Think critically and iterate through your reasoning at least three times before making a final decision. "
+            "3. Think critically and iterate through your reasoning at least three times before making a final decision. "
             "Reading papers is time-consuming, so only recommend truly relevant papers.\n\n"
-            "5. Structure your response as follows:\n"
+            "4. Structure your response as follows:\n"
             "- Reasoning process enclosed within <think></think> tags.\n"
             "- Final explanation enclosed within <reason></reason> tags.\n"
             "- Final verdict (either <answer>yes</answer> or <answer>no</answer>).\n"
@@ -49,7 +47,7 @@ class LLMJudge:
             authors = f"Authors: {paper.authors}\n"
             summary = f"Summary: {paper.summary}\n\n"
             preferences += title + authors + summary
-        query = query_format.format(instructions=instructions, keywords=keywords, preferences=preferences, authors=authors)  + "**New Paper: {paper}\n"
+        query = query_format.format(instructions=instructions, keywords=keywords, preferences=preferences, authors=authors)  + "**New Paper**: {paper}\n"
         prompts = []
         for i, result in enumerate(results_list):
             title = f"Title: {result.title}\n"
@@ -61,12 +59,16 @@ class LLMJudge:
         good_papers = []
         for i,output in enumerate(outputs):
             response = output.outputs[0].text
-            # print(output.outputs[0].text)
-            # print("****END*****\n")
-            if "<answer>yes</answer>" in response:
+            print(output.outputs[0].text)
+            print("****END*****\n")
+            if self._has_notable_author(results_list[i].authors):
+                good_papers.append(results_list[i])
+            elif "<answer>yes</answer>" in response:
                 good_papers.append(results_list[i])
         return good_papers
-        
+
+    def _has_notable_author(self, author_list):
+        return bool(set(author_list.split(', ')) & set(self.cfg.authors))
 
 if __name__ == "__main__":
     from daily_digest.arxiv_parser import ArxivParser

@@ -27,23 +27,26 @@ class ArxivParser:
         return papers
 
     def _fetch_papers_from_query(self, search_query, max_results=400, attempts=5):
-        if attempts <=0:
+        if attempts <= 0:
             raise arxiv.UnexpectedEmptyPageError("yeah its not happening")
         try:
-            today = (datetime.today() - timedelta(days=1)) .strftime("%Y%m%d")
-            query = f"{search_query}" #  AND submittedDate:[{today} TO {today}]"
+            query = f"{search_query}"
             search = arxiv.Search(
                 query=query,
                 max_results=max_results,
                 sort_by=arxiv.SortCriterion.SubmittedDate,
                 sort_order=arxiv.SortOrder.Descending
-            )        
+            )
+            if datetime.today().weekday() == 0: # if today is monday
+                query_date = (datetime.today() - timedelta(days=3)).strftime("%Y%m%d") # friday
+            else:
+                query_date = (datetime.today() - timedelta(days=1)).strftime("%Y%m%d") # yesterday
             papers = []
             for result in self.client.results(search):
                 if self.cfg.category not in result.categories:
                     continue
-                if not result.published.strftime('%Y%m%d') == today:
-                    continue 
+                if not (result.published.strftime('%Y%m%d') == query_date):
+                        continue
                 paper = ArxivPaper(
                     title = result.title, 
                     authors = ", ".join([author.name for author in result.authors]),

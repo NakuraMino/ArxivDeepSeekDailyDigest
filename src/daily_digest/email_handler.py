@@ -50,7 +50,7 @@ class GmailClient:
     def create_message(self, papers, html=True):
         """Create a message for sending an email."""
         message = MIMEMultipart()
-        today = (datetime.today() - timedelta(days=1)).strftime("%m%d")
+        today = (datetime.today()).strftime("%b. %d")
         message["Subject"] = f"{today} Arxiv Paper Daily Digest"
         message["From"] = self.sender
         message["To"] = self.to
